@@ -1,6 +1,9 @@
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { motion } from "framer-motion";
+import toast, { Toaster } from "react-hot-toast";
+import { useState } from "react";
 
 type FormData = {
   url: string;
@@ -12,7 +15,13 @@ const FormSchema = z.object({
   shortUrl: z.string().max(30),
 });
 
+function sleep(ms: any) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export default function Home() {
+  const [isCreating, setIsCreating] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -20,12 +29,43 @@ export default function Home() {
   } = useForm<FormData>({
     resolver: zodResolver(FormSchema),
   });
-  const onSubmit: SubmitHandler<FormData> = (data) => console.log(data);
 
-  console.log(errors);
+  const create = async (data: FormData) => {
+    try {
+      setIsCreating(true);
+      await sleep(500);
+      const resp = await fetch("/api/create", {
+        body: JSON.stringify(data),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      });
+      if (resp.status != 200) {
+        throw new Error("Server error.");
+      }
+    } catch (error: any) {
+      throw new Error(error);
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const onSubmit: SubmitHandler<FormData> = (data) => {
+    try {
+      toast.promise(create(data), {
+        loading: "Creating Your Short URL",
+        success: "Success!",
+        error: "Something went wrong.",
+      });
+    } catch (error: any) {
+      toast.error(error);
+    }
+  };
 
   return (
     <div className="flex h-screen max-w-7xl items-center justify-center m-auto">
+      <Toaster />
       <form
         className="w-full border py-10 px-10 mt-10 max-w-lg"
         onSubmit={handleSubmit(onSubmit)}
@@ -57,12 +97,21 @@ export default function Home() {
             </div>
           )}
         </div>
-        <button
+        <motion.button
           className="mt-4 w-full bg-blue-400 hover:bg-blue-600 text-blue-100 border shadow py-3 px-6 font-semibold rounded"
+          disabled={isCreating}
+          whileHover={{
+            scale: 1.02,
+            transition: { duration: 0.2 },
+          }}
+          whileTap={{
+            scale: 0.95,
+            transition: { duration: 0.2 },
+          }}
           type="submit"
         >
           Submit
-        </button>
+        </motion.button>
       </form>
     </div>
   );
