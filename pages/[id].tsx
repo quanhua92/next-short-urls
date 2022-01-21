@@ -1,6 +1,7 @@
+import { GetServerSideProps } from "next";
 import { prisma } from "../lib/prisma";
 
-export const getServerSideProps = async (ctx) => {
+export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const { id: shortUrl } = ctx.query;
   const link = await prisma.link.findFirst({
     select: {
@@ -8,7 +9,7 @@ export const getServerSideProps = async (ctx) => {
       url: true,
     },
     where: {
-      shortUrl: shortUrl,
+      shortUrl: shortUrl as string,
     },
   });
 
