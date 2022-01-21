@@ -27,7 +27,7 @@ function sleep(ms: any) {
 }
 
 export default function Home() {
-  const [isCreating, setIsCreating] = useState(false);
+  const [isWorking, setIsWorking] = useState(false);
   const [previousLinks, setPreviousLinks] = useState<PreviousLink[]>([]);
 
   const {
@@ -41,7 +41,7 @@ export default function Home() {
 
   const create = async (data: FormData) => {
     try {
-      setIsCreating(true);
+      setIsWorking(true);
       const resp = await fetch("/api/create", {
         body: JSON.stringify(data),
         headers: {
@@ -69,7 +69,7 @@ export default function Home() {
     } catch (error: any) {
       throw new Error(error);
     } finally {
-      setIsCreating(false);
+      setIsWorking(false);
     }
   };
 
@@ -110,7 +110,7 @@ export default function Home() {
           <div className="mt-4">
             <input
               className="border-solid border-gray-300 border py-2 px-4 w-full rounded text-gray-700"
-              placeholder="Short Handle"
+              placeholder="Short Alias"
               type="text"
               {...register("alias")}
             />
@@ -122,7 +122,7 @@ export default function Home() {
           </div>
           <motion.button
             className="mt-4 w-full bg-blue-400 hover:bg-blue-600 text-blue-100 border shadow py-3 px-6 font-semibold rounded"
-            disabled={isCreating}
+            disabled={isWorking}
             whileHover={{
               scale: 1.02,
               transition: { duration: 0.2 },

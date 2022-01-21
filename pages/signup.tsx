@@ -1,6 +1,9 @@
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { motion } from "framer-motion";
+import toast, { Toaster } from "react-hot-toast";
+import { useState } from "react";
 
 type FormData = {
   username: string;
@@ -20,19 +23,59 @@ const FormSchema = z
   });
 
 export default function SignUp() {
+  const [isWorking, setIsWorking] = useState(false);
+
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(FormSchema),
   });
-  const onSubmit: SubmitHandler<FormData> = (data) => console.log(data);
 
-  console.log(errors);
+  const signup = async (data: FormData) => {
+    try {
+      setIsWorking(true);
+      const resp = await fetch("/api/signup", {
+        body: JSON.stringify(data),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      });
+      if (resp.status != 200) {
+        throw new Error("Server error.");
+      }
+
+      // reset({
+      //   username: "",
+      //   password: "",
+      //   confirm: "",
+      // });
+      // TODO: REDIRECT TO ADMIN PAGE OR INDEX PAGE
+    } catch (error: any) {
+      throw new Error(error);
+    } finally {
+      setIsWorking(false);
+    }
+  };
+
+  const onSubmit: SubmitHandler<FormData> = (data) => {
+    try {
+      toast.promise(signup(data), {
+        loading: "Signing up",
+        success: "Success!",
+        error: "Something went wrong.",
+      });
+    } catch (error: any) {
+      toast.error(error);
+    }
+  };
 
   return (
     <div className="flex h-screen max-w-7xl items-center justify-center m-auto">
+      <Toaster />
       <form
         className="w-full border py-10 px-10 mt-10 max-w-lg"
         onSubmit={handleSubmit(onSubmit)}
@@ -77,12 +120,21 @@ export default function SignUp() {
             </div>
           )}
         </div>
-        <button
+        <motion.button
           className="mt-4 w-full bg-blue-400 hover:bg-blue-600 text-blue-100 border shadow py-3 px-6 font-semibold rounded"
+          disabled={isWorking}
+          whileHover={{
+            scale: 1.02,
+            transition: { duration: 0.2 },
+          }}
+          whileTap={{
+            scale: 0.95,
+            transition: { duration: 0.2 },
+          }}
           type="submit"
         >
           Sign Up
-        </button>
+        </motion.button>
       </form>
     </div>
   );
