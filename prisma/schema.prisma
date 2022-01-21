@@ -12,8 +12,10 @@ datasource db {
 
 model Link {
   id        String   @id @default(uuid())
-  shortUrl  String   @unique
+  alias     String   @unique
+  shortUrl  String
   url       String
+  domain    String   @default("")
   clicks    Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

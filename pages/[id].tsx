@@ -2,14 +2,14 @@ import { GetServerSideProps } from "next";
 import { prisma } from "../lib/prisma";
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const { id: shortUrl } = ctx.query;
+  const { id: alias } = ctx.query;
   const link = await prisma.link.findFirst({
     select: {
-      shortUrl: true,
+      alias: true,
       url: true,
     },
     where: {
-      shortUrl: shortUrl as string,
+      alias: alias as string,
     },
   });
 
@@ -29,7 +29,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
       url: true,
     },
     where: {
-      shortUrl: link.shortUrl,
+      alias: link.alias,
     },
     data: {
       clicks: {

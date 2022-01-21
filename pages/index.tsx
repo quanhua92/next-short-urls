@@ -8,12 +8,18 @@ import Link from "next/link";
 
 type FormData = {
   url: string;
+  alias: string;
+};
+
+type PreviousLink = {
+  alias: string;
   shortUrl: string;
+  domain: string;
 };
 
 const FormSchema = z.object({
   url: z.string().nonempty({ message: "Please enter a URL" }).url(),
-  shortUrl: z.string().max(30),
+  alias: z.string().max(30),
 });
 
 function sleep(ms: any) {
@@ -22,7 +28,7 @@ function sleep(ms: any) {
 
 export default function Home() {
   const [isCreating, setIsCreating] = useState(false);
-  const [previousLinks, setPreviousLinks] = useState<string[]>(["demo"]);
+  const [previousLinks, setPreviousLinks] = useState<PreviousLink[]>([]);
 
   const {
     register,
@@ -47,7 +53,14 @@ export default function Home() {
       }
       const link = await resp.json();
 
-      setPreviousLinks([...previousLinks, link.shortUrl]);
+      setPreviousLinks([
+        ...previousLinks,
+        {
+          alias: link.data.alias as string,
+          shortUrl: link.data.shortUrl as string,
+          domain: link.data.domain as string,
+        },
+      ]);
     } catch (error: any) {
       throw new Error(error);
     } finally {
@@ -94,11 +107,11 @@ export default function Home() {
               className="border-solid border-gray-300 border py-2 px-4 w-full rounded text-gray-700"
               placeholder="Short Handle"
               type="text"
-              {...register("shortUrl")}
+              {...register("alias")}
             />
-            {errors.shortUrl && (
+            {errors.alias && (
               <div className="mb-3 text-normal text-red-500">
-                {errors.shortUrl.message}
+                {errors.alias.message}
               </div>
             )}
           </div>
@@ -120,20 +133,22 @@ export default function Home() {
         </form>
         <div className="w-full mt-4">
           <ul>
-            {previousLinks.map((shortUrl, i) => {
+            {previousLinks.map((previousLink, i) => {
               return (
                 <li
                   key={i}
                   className="py-3 px-3 border border-solid border-gray-300 my-3"
                 >
                   <span>Short Link: </span>
-                  <Link href={`/${shortUrl}`} passHref>
-                    <a className="text-blue-500 font-semibold">/{shortUrl}</a>
+                  <Link href={`${previousLink.shortUrl}`} passHref>
+                    <a className="text-blue-500 font-semibold">
+                      {previousLink.shortUrl}
+                    </a>
                   </Link>
                   <span> Stats: </span>
-                  <Link href={`/stats/${shortUrl}`} passHref>
+                  <Link href={`/stats/${previousLink.alias}`} passHref>
                     <a className="text-blue-500 font-semibold">
-                      /stats/{shortUrl}
+                      {`${previousLink.domain}/stats/${previousLink.alias}`}
                     </a>
                   </Link>
                 </li>

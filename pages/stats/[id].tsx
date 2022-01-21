@@ -3,15 +3,16 @@ import { prisma } from "../../lib/prisma";
 import { Link } from "@prisma/client";
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const { id: shortUrl } = ctx.query;
+  const { id: alias } = ctx.query;
   const link = await prisma.link.findFirst({
     select: {
       shortUrl: true,
+      alias: true,
       url: true,
       clicks: true,
     },
     where: {
-      shortUrl: shortUrl as string,
+      alias: alias as string,
     },
   });
 
@@ -41,6 +42,7 @@ const Stats: NextPage<Props> = function ({ link }) {
     <div className="flex flex-col h-screen max-w-7xl items-center justify-center m-auto">
       <p className="py-3 px-3">Url: {link.url}</p>
       <p className="py-3 px-3">shortUrl: {link.shortUrl}</p>
+      <p className="py-3 px-3">alias: {link.alias}</p>
       <p className="py-3 px-3">Clicks: {link.clicks}</p>
     </div>
   );

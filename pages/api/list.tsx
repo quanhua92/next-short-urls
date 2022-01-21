@@ -1,12 +1,28 @@
+import { Link } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
+import { prisma } from "../../lib/prisma";
 
-type Data = {
-  message: string;
+type LinkResponse = {
+  url: string;
+  shortUrl: string;
+  clicks: number;
 };
 
-export default function handler(
+type Data = {
+  data?: LinkResponse[];
+};
+
+export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
 ) {
-  res.status(200).json({ message: "/api/list" });
+  const links = await prisma.link.findMany({
+    select: {
+      url: true,
+      shortUrl: true,
+      clicks: true,
+    },
+  });
+
+  res.status(200).json({ data: links });
 }
