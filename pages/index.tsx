@@ -33,6 +33,7 @@ export default function Home() {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(FormSchema),
@@ -61,6 +62,10 @@ export default function Home() {
           domain: link.data.domain as string,
         },
       ]);
+      reset({
+        url: "",
+        alias: "",
+      });
     } catch (error: any) {
       throw new Error(error);
     } finally {
