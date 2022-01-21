@@ -4,6 +4,7 @@ import * as z from "zod";
 import { motion } from "framer-motion";
 import toast, { Toaster } from "react-hot-toast";
 import { useState } from "react";
+import Link from "next/link";
 
 type FormData = {
   url: string;
@@ -21,7 +22,7 @@ function sleep(ms: any) {
 
 export default function Home() {
   const [isCreating, setIsCreating] = useState(false);
-  const [previousLinks, setPreviousLinks] = useState<string[]>([]);
+  const [previousLinks, setPreviousLinks] = useState<string[]>(["demo"]);
 
   const {
     register,
@@ -71,12 +72,12 @@ export default function Home() {
       <Toaster />
       <div className="flex flex-col h-screen max-w-lg items-center justify-center m-auto">
         <form
-          className="w-full border py-10 px-10 mt-10"
+          className="w-full border border-gray-300 border-solid py-10 px-10 mt-10"
           onSubmit={handleSubmit(onSubmit)}
         >
           <div>
             <input
-              className="border-solid border-gray-3000 border py-2 px-4 w-full rounded text-gray-700"
+              className="border-solid border-gray-300 border py-2 px-4 w-full rounded text-gray-700"
               placeholder="Input URL"
               autoFocus
               type="text"
@@ -90,7 +91,7 @@ export default function Home() {
           </div>
           <div className="mt-4">
             <input
-              className="border-solid border-gray-3000 border py-2 px-4 w-full rounded text-gray-700"
+              className="border-solid border-gray-300 border py-2 px-4 w-full rounded text-gray-700"
               placeholder="Short Handle"
               type="text"
               {...register("shortUrl")}
@@ -120,7 +121,23 @@ export default function Home() {
         <div className="w-full mt-4">
           <ul>
             {previousLinks.map((shortUrl, i) => {
-              return <li key={i}>{shortUrl}</li>;
+              return (
+                <li
+                  key={i}
+                  className="py-3 px-3 border border-solid border-gray-300 my-3"
+                >
+                  <span>Short Link: </span>
+                  <Link href={`/${shortUrl}`} passHref>
+                    <a className="text-blue-500 font-semibold">/{shortUrl}</a>
+                  </Link>
+                  <span> Stats: </span>
+                  <Link href={`/stats/${shortUrl}`} passHref>
+                    <a className="text-blue-500 font-semibold">
+                      /stats/{shortUrl}
+                    </a>
+                  </Link>
+                </li>
+              );
             })}
           </ul>
         </div>

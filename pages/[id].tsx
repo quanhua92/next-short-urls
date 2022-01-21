@@ -23,10 +23,25 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     };
   }
 
+  const updatedLink = await prisma.link.update({
+    select: {
+      shortUrl: true,
+      url: true,
+    },
+    where: {
+      shortUrl: link.shortUrl,
+    },
+    data: {
+      clicks: {
+        increment: 1,
+      },
+    },
+  });
+
   return {
     redirect: {
       permanent: false,
-      destination: link.url,
+      destination: updatedLink.url,
     },
     props: {},
   };
