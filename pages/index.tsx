@@ -21,6 +21,7 @@ function sleep(ms: any) {
 
 export default function Home() {
   const [isCreating, setIsCreating] = useState(false);
+  const [previousLinks, setPreviousLinks] = useState<string[]>([]);
 
   const {
     register,
@@ -33,7 +34,6 @@ export default function Home() {
   const create = async (data: FormData) => {
     try {
       setIsCreating(true);
-      await sleep(500);
       const resp = await fetch("/api/create", {
         body: JSON.stringify(data),
         headers: {
@@ -44,6 +44,9 @@ export default function Home() {
       if (resp.status != 200) {
         throw new Error("Server error.");
       }
+      const link = await resp.json();
+
+      setPreviousLinks([...previousLinks, link.shortUrl]);
     } catch (error: any) {
       throw new Error(error);
     } finally {
@@ -64,55 +67,64 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-screen max-w-7xl items-center justify-center m-auto">
+    <>
       <Toaster />
-      <form
-        className="w-full border py-10 px-10 mt-10 max-w-lg"
-        onSubmit={handleSubmit(onSubmit)}
-      >
-        <div>
-          <input
-            className="border-solid border-gray-3000 border py-2 px-4 w-full rounded text-gray-700"
-            placeholder="Input URL"
-            autoFocus
-            type="text"
-            {...register("url", { required: true })}
-          />
-          {errors.url && (
-            <div className="mb-3 text-normal text-red-500">
-              {errors.url.message}
-            </div>
-          )}
-        </div>
-        <div className="mt-4">
-          <input
-            className="border-solid border-gray-3000 border py-2 px-4 w-full rounded text-gray-700"
-            placeholder="Short Handle"
-            type="text"
-            {...register("shortUrl")}
-          />
-          {errors.shortUrl && (
-            <div className="mb-3 text-normal text-red-500">
-              {errors.shortUrl.message}
-            </div>
-          )}
-        </div>
-        <motion.button
-          className="mt-4 w-full bg-blue-400 hover:bg-blue-600 text-blue-100 border shadow py-3 px-6 font-semibold rounded"
-          disabled={isCreating}
-          whileHover={{
-            scale: 1.02,
-            transition: { duration: 0.2 },
-          }}
-          whileTap={{
-            scale: 0.95,
-            transition: { duration: 0.2 },
-          }}
-          type="submit"
+      <div className="flex flex-col h-screen max-w-lg items-center justify-center m-auto">
+        <form
+          className="w-full border py-10 px-10 mt-10"
+          onSubmit={handleSubmit(onSubmit)}
         >
-          Submit
-        </motion.button>
-      </form>
-    </div>
+          <div>
+            <input
+              className="border-solid border-gray-3000 border py-2 px-4 w-full rounded text-gray-700"
+              placeholder="Input URL"
+              autoFocus
+              type="text"
+              {...register("url", { required: true })}
+            />
+            {errors.url && (
+              <div className="mb-3 text-normal text-red-500">
+                {errors.url.message}
+              </div>
+            )}
+          </div>
+          <div className="mt-4">
+            <input
+              className="border-solid border-gray-3000 border py-2 px-4 w-full rounded text-gray-700"
+              placeholder="Short Handle"
+              type="text"
+              {...register("shortUrl")}
+            />
+            {errors.shortUrl && (
+              <div className="mb-3 text-normal text-red-500">
+                {errors.shortUrl.message}
+              </div>
+            )}
+          </div>
+          <motion.button
+            className="mt-4 w-full bg-blue-400 hover:bg-blue-600 text-blue-100 border shadow py-3 px-6 font-semibold rounded"
+            disabled={isCreating}
+            whileHover={{
+              scale: 1.02,
+              transition: { duration: 0.2 },
+            }}
+            whileTap={{
+              scale: 0.95,
+              transition: { duration: 0.2 },
+            }}
+            type="submit"
+          >
+            Submit
+          </motion.button>
+        </form>
+        <div className="w-full mt-4">
+          <ul>
+            {previousLinks.map((shortUrl, i) => {
+              return <li key={i}>{shortUrl}</li>;
+            })}
+          </ul>
+        </div>
+      </div>
+    </>
   );
 }

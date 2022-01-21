@@ -70,7 +70,7 @@ export default async function handler(
       return;
     }
     res.status(200).json({
-      shortUrl: shortUrl,
+      shortUrl: link.shortUrl,
       message: `Created successfully: / ${link.shortUrl}`,
     });
   } catch (error) {
