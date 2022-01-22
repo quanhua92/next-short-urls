@@ -1,15 +1,14 @@
 import useSWR from "swr";
 import useUser from "../lib/useUser";
 import type { Data } from "./api/list";
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+import Link from "next/link";
 
 export default function Admin() {
   const { user } = useUser({
     redirectTo: "/login",
   });
 
-  const { data } = useSWR<Data>("/api/list", fetcher);
+  const { data } = useSWR<Data>("/api/list");
 
   if (!user || user?.isLoggedIn == false) {
     return <div>...</div>;
@@ -17,7 +16,10 @@ export default function Admin() {
 
   return (
     <div className="flex flex-col h-screen max-w-7xl items-center justify-center m-auto">
-      Admin Page
+      Admin Page -{" "}
+      <Link href="/">
+        <a>Home</a>
+      </Link>
       <ul>
         {data &&
           data.data?.map((link, i) => {

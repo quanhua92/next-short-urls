@@ -92,6 +92,9 @@ export default function Home() {
           {user?.username ? (
             <div>
               <span>Current User: {user?.username} </span>
+              <Link href="/admin">
+                <a>Admin Page</a>
+              </Link>
               <Link href="/api/logout">
                 <a>Log out</a>
               </Link>
