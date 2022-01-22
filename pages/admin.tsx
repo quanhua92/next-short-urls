@@ -41,6 +41,7 @@ export default function Admin() {
 
   const onSubmit: SubmitHandler<FormData> = (data) => {
     console.log("EDITTING SUBMIT", data);
+    setOpenDialog(false);
     // try {
     //   toast.promise(create(data), {
     //     loading: "Creating Your Short URL",
@@ -117,7 +118,7 @@ export default function Admin() {
                                   className="border-solid border-gray-300 border py-2 px-4 w-full rounded text-gray-700 bg-gray-200"
                                   placeholder="Short Alias"
                                   type="text"
-                                  disabled
+                                  readOnly
                                   defaultValue={currentLink.alias}
                                   {...register("alias")}
                                 />
