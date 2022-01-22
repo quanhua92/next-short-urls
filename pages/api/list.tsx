@@ -23,15 +23,22 @@ export default withIronSessionApiRoute(handler, sessionOptions);
 
 async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   const userSession = req.session.user;
-  if (!userSession || (userSession && userSession.admin !== true)) {
+  if (!userSession) {
     res.status(400).json({ message: "Unauthorized" });
     return;
   }
 
   const user = await getUserById(userSession.id);
-  if (!user || (user && user.role !== Role.ADMIN)) {
+  if (!user) {
     res.status(400).json({ data: [], message: "Unauthorized" });
     return;
+  }
+
+  var condition = {};
+  if (user.role !== Role.ADMIN) {
+    condition = {
+      userId: user.id,
+    };
   }
 
   const links = await prisma.link.findMany({
@@ -42,6 +49,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       alias: true,
       domain: true,
     },
+    where: condition,
   });
 
   res.status(200).json({ data: links });

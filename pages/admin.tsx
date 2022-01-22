@@ -73,7 +73,7 @@ export default function Admin() {
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                             {link.shortUrl}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          <td className="max-w-xs truncate hover:text-clip overflow-hidden px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                             {link.url}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">

@@ -2,6 +2,9 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { randomBytes } from "crypto";
 import { prisma } from "../../lib/prisma";
 import { Link } from "@prisma/client";
+import { sessionOptions } from "../../lib/session";
+import { withIronSessionApiRoute } from "iron-session/next";
+import { getUserById } from "../../lib/user";
 
 type Data = {
   data?: {
@@ -20,6 +23,7 @@ const DEFAULT_DOMAIN = "https://next-short-urls.vercel.app";
 const createLinkWithRetry = async function (
   url: string,
   alias: string,
+  userId,
   domain: string,
   random_length: number,
   retry: number
@@ -52,17 +56,25 @@ const createLinkWithRetry = async function (
         alias: expectedAlias,
         shortUrl: domain + "/" + alias,
         domain: domain,
+        userId: userId,
       },
     });
     return link;
   }
 };
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<Data>
-) {
+export default withIronSessionApiRoute(handler, sessionOptions);
+
+async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   const { url, alias } = req.body;
+  const userSession = req.session.user;
+  let userId = undefined;
+  if (userSession) {
+    const user = await getUserById(userSession.id);
+    if (user) {
+      userId = user.id;
+    }
+  }
 
   try {
     if (alias === undefined) {
@@ -75,6 +87,7 @@ export default async function handler(
     const link = await createLinkWithRetry(
       url,
       alias,
+      userId,
       DEFAULT_DOMAIN,
       GENERATED_SHORT_URL_LENGTH,
       MAX_RETRY
