@@ -118,7 +118,6 @@ export default function Home() {
             <input
               className="border-solid border-gray-300 border py-2 px-4 w-full rounded text-gray-700"
               placeholder="Input URL"
-              autoFocus
               type="text"
               {...register("url", { required: true })}
             />
