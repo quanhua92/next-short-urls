@@ -8,6 +8,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@headlessui/react": "^1.4.3",
     "@heroicons/react": "^1.0.5",
     "@hookform/resolvers": "^2.8.6",
     "@prisma/client": "^3.8.1",
