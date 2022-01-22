@@ -1,8 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { randomBytes } from "crypto";
 import { prisma } from "../../lib/prisma";
 import { hash } from "../../lib/hash";
-import { User, Role } from "@prisma/client";
+import { Role } from "@prisma/client";
 
 type Data = {
   data?: {
@@ -17,7 +16,6 @@ export default async function handler(
   res: NextApiResponse<Data>
 ) {
   const { username, password, confirm } = req.body;
-  console.log(username, password, confirm);
 
   if (password !== confirm) {
     res.status(400).json({ message: "Password validation failed" });
@@ -47,7 +45,6 @@ export default async function handler(
       role: Role.ADMIN,
     },
   });
-  console.log("first user", firstAdmin);
   let isAdmin = firstAdmin == null;
 
   const user = await prisma.user.create({

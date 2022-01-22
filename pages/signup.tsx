@@ -4,6 +4,7 @@ import * as z from "zod";
 import { motion } from "framer-motion";
 import toast, { Toaster } from "react-hot-toast";
 import { useState } from "react";
+import { useRouter } from "next/router";
 
 type FormData = {
   username: string;
@@ -24,6 +25,7 @@ const FormSchema = z
 
 export default function SignUp() {
   const [isWorking, setIsWorking] = useState(false);
+  const router = useRouter();
 
   const {
     register,
@@ -45,15 +47,17 @@ export default function SignUp() {
         method: "POST",
       });
       if (resp.status != 200) {
-        throw new Error("Server error.");
+        const data = await resp.json();
+        throw new Error(data.message);
       }
 
-      // reset({
-      //   username: "",
-      //   password: "",
-      //   confirm: "",
-      // });
-      // TODO: REDIRECT TO ADMIN PAGE OR INDEX PAGE
+      reset({
+        username: "",
+        password: "",
+        confirm: "",
+      });
+
+      router.push("/login");
     } catch (error: any) {
       throw new Error(error);
     } finally {
@@ -66,7 +70,9 @@ export default function SignUp() {
       toast.promise(signup(data), {
         loading: "Signing up",
         success: "Success!",
-        error: "Something went wrong.",
+        error: (err: Error) => {
+          return `${err.message}`;
+        },
       });
     } catch (error: any) {
       toast.error(error);

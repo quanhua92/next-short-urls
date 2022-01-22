@@ -37,6 +37,9 @@ export default async function handler(
     res.status(200).json({ message: `${alias} not found` });
     return;
   }
+
+  // TODO: check link owner using user session
+
   res.status(200).json({
     data: {
       url: link.url,

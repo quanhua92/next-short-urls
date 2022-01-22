@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import toast, { Toaster } from "react-hot-toast";
 import { useState } from "react";
 import Link from "next/link";
+import useUser from "../lib/useUser";
 
 type FormData = {
   url: string;
@@ -22,12 +23,10 @@ const FormSchema = z.object({
   alias: z.string().max(30),
 });
 
-function sleep(ms: any) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 export default function Home() {
   const [isWorking, setIsWorking] = useState(false);
+  const { user } = useUser();
+
   const [previousLinks, setPreviousLinks] = useState<PreviousLink[]>([]);
 
   const {
@@ -89,6 +88,25 @@ export default function Home() {
     <>
       <Toaster />
       <div className="flex flex-col h-screen max-w-lg items-center justify-center m-auto">
+        <div>
+          {user?.username ? (
+            <div>
+              <span>Current User: {user?.username} </span>
+              <Link href="/api/logout">
+                <a>Log out</a>
+              </Link>
+            </div>
+          ) : (
+            <div>
+              <Link href="/login">
+                <a className="px-3 py-3">Log in</a>
+              </Link>
+              <Link href="/signup">
+                <a className="px-3 py-3">Sign up</a>
+              </Link>
+            </div>
+          )}
+        </div>
         <form
           className="w-full border border-gray-300 border-solid py-10 px-10 mt-10"
           onSubmit={handleSubmit(onSubmit)}
