@@ -23,7 +23,7 @@ const DEFAULT_DOMAIN = "https://next-short-urls.vercel.app";
 const createLinkWithRetry = async function (
   url: string,
   alias: string,
-  userId,
+  userId: string | undefined,
   domain: string,
   random_length: number,
   retry: number

@@ -30,7 +30,6 @@ export default function Admin() {
   const {
     register,
     handleSubmit,
-    reset,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(FormSchema),
