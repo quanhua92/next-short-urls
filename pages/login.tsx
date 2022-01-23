@@ -1,7 +1,6 @@
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { motion } from "framer-motion";
 import toast, { Toaster } from "react-hot-toast";
 import { useState } from "react";
 import Link from "next/link";
@@ -106,21 +105,13 @@ export default function Login() {
           )}
         </div>
 
-        <motion.button
+        <button
           className="mt-4 w-full bg-blue-400 hover:bg-blue-600 text-blue-100 border shadow py-3 px-6 font-semibold rounded"
           disabled={isWorking}
-          whileHover={{
-            scale: 1.02,
-            transition: { duration: 0.2 },
-          }}
-          whileTap={{
-            scale: 0.95,
-            transition: { duration: 0.2 },
-          }}
           type="submit"
         >
           Login
-        </motion.button>
+        </button>
       </form>
       <Link href="/signup" passHref>
         <a>Sign up</a>

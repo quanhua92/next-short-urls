@@ -194,6 +194,7 @@ export default function Admin() {
                     </div>
                     <div className="flex-shrink-0 px-4 py-4 flex justify-end">
                       <button
+                        disabled={isWorking}
                         form="edit-url-form"
                         type="submit"
                         className="inline-flex justify-center py-2 px-10 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -209,6 +210,7 @@ export default function Admin() {
                       </button>
                       <div className="grow"></div>
                       <button
+                        disabled={isWorking}
                         type="button"
                         className="ml-4 bg-red-600 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-red-100 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                         onClick={() => setOpenDialog(false)}
