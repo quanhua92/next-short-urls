@@ -44,7 +44,7 @@ export default function Admin() {
     return <div>...</div>;
   }
 
-  const sortedData = data?.data;
+  const sortedData = data?.data?.concat();
   if (sortedData) {
     sortedData?.sort((a, b) => (a.alias > b.alias ? 1 : -1));
   }
