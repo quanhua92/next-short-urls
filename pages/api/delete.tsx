@@ -35,16 +35,28 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     }
   }
 
-  const link = await prisma.link.delete({
-    where: {
-      alias: alias as string,
-    },
-  });
+  await prisma.link
+    .update({
+      where: {
+        alias: alias as string,
+      },
+      data: {
+        histories: {
+          deleteMany: {},
+        },
+      },
+    })
+    .then(async () => {
+      const link = await prisma.link.delete({
+        where: {
+          alias: alias as string,
+        },
+      });
 
-  if (link === null) {
-    res.status(400).json({ status: false, message: "Invalid link" });
-    return;
-  }
-
-  res.status(200).json({ status: true });
+      if (link === null) {
+        res.status(400).json({ status: false, message: "Invalid link" });
+        return;
+      }
+    })
+    .finally(() => res.status(200).json({ status: true }));
 }
