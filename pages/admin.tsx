@@ -30,6 +30,7 @@ export default function Admin() {
   const [openDialog, setOpenDialog] = useState(false);
   const [currentLink, setCurrentLink] = useState<LinkResponse | undefined>();
   const [isWorking, setIsWorking] = useState(false);
+  const [actionType, setActionType] = useState<string>("");
 
   const {
     register,
@@ -49,7 +50,7 @@ export default function Admin() {
     sortedData?.sort((a, b) => (a.alias > b.alias ? 1 : -1));
   }
 
-  const edit = async (data: FormData) => {
+  const editLink = async (data: FormData) => {
     try {
       setIsWorking(true);
       await mutate(API_LIST_URL, async (originData: Data) => {
@@ -82,16 +83,59 @@ export default function Admin() {
       setIsWorking(false);
     }
   };
+  const deleteLink = async (data: FormData) => {
+    try {
+      setIsWorking(true);
+      await mutate(API_LIST_URL, async (originData: Data) => {
+        const resp = await fetch("/api/delete", {
+          body: JSON.stringify(data),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          method: "POST",
+        });
+        const response = await resp.json();
+        if (resp.status != 200) {
+          throw new Error(response.message);
+        }
+
+        // TODO: Check the undefined condition here
+        const filteredData = originData!.data!.filter(
+          (link) => link.alias !== data.alias
+        );
+        const newData = {
+          data: [...filteredData],
+          message: originData.message,
+        };
+        return newData;
+      });
+      setOpenDialog(false);
+    } catch (error: any) {
+      throw new Error(error);
+    } finally {
+      setIsWorking(false);
+    }
+  };
 
   const onSubmit: SubmitHandler<FormData> = (data) => {
     try {
-      toast.promise(edit(data), {
-        loading: "Editing Your Short URL",
-        success: "Success!",
-        error: (err: Error) => {
-          return `${err.message}`;
-        },
-      });
+      if (actionType === "SAVE") {
+        toast.promise(editLink(data), {
+          loading: "Editing Your Short URL",
+          success: "Success!",
+          error: (err: Error) => {
+            return `${err.message}`;
+          },
+        });
+      } else if (actionType === "DELETE") {
+        toast.promise(deleteLink(data), {
+          loading: "Deleting Your Short URL",
+          success: "Success!",
+          error: (err: Error) => {
+            return `${err.message}`;
+          },
+        });
+      }
     } catch (error: any) {
       toast.error(error);
     }
@@ -99,6 +143,7 @@ export default function Admin() {
 
   return (
     <>
+      <Toaster />
       <Transition.Root show={openDialog} as={Fragment}>
         <Dialog
           as="div"
@@ -149,7 +194,6 @@ export default function Admin() {
                         </div>
                       </div>
                       <div className="mt-6 relative flex-1 px-4 sm:px-6">
-                        {/* Replace with your content */}
                         <div className="h-full" aria-hidden="true">
                           {currentLink && (
                             <form
@@ -196,7 +240,7 @@ export default function Admin() {
                       <button
                         disabled={isWorking}
                         form="edit-url-form"
-                        type="submit"
+                        onClick={() => setActionType("SAVE")}
                         className="inline-flex justify-center py-2 px-10 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                       >
                         Save
@@ -211,9 +255,9 @@ export default function Admin() {
                       <div className="grow"></div>
                       <button
                         disabled={isWorking}
-                        type="button"
+                        form="edit-url-form"
+                        onClick={() => setActionType("DELETE")}
                         className="ml-4 bg-red-600 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-red-100 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                        onClick={() => setOpenDialog(false)}
                       >
                         Delete
                       </button>
