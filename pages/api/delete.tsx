@@ -4,7 +4,7 @@ import { withIronSessionApiRoute } from "iron-session/next";
 import { prisma } from "../../lib/prisma";
 import { sessionOptions } from "../../lib/session";
 import { Role } from "@prisma/client";
-import { getUserById } from "../../lib/user";
+import { getLinkByAlias, getUserById } from "../../lib/user";
 
 export type Data = {
   status: boolean;
@@ -27,18 +27,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     return;
   }
 
-  var condition: { alias: string; userId?: string } = {
-    alias: alias as string,
-  };
   if (user.role !== Role.ADMIN) {
-    condition = {
-      alias: alias as string,
-      userId: user.id,
-    };
+    const link = await getLinkByAlias(alias as string);
+    if (link === null || link?.userId !== user.id) {
+      res.status(400).json({ status: false, message: "Unauthorized" });
+      return;
+    }
   }
 
   const link = await prisma.link.delete({
-    where: condition,
+    where: {
+      alias: alias as string,
+    },
   });
 
   if (link === null) {
