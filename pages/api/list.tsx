@@ -12,6 +12,7 @@ export type LinkResponse = {
   alias: string;
   domain: string;
   clicks: number;
+  userId: string | null;
 };
 
 export type Data = {
@@ -48,6 +49,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       clicks: true,
       alias: true,
       domain: true,
+      userId: true,
     },
     where: condition,
   });

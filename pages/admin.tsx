@@ -309,6 +309,12 @@ export default function Admin() {
                         scope="col"
                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                       >
+                        User ID
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
                         Edit
                       </th>
                     </tr>
@@ -325,13 +331,16 @@ export default function Admin() {
                               {link.alias}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                              {link.shortUrl}
+                              <a href={link.shortUrl}>{link.shortUrl}</a>
                             </td>
                             <td className="max-w-xs truncate hover:text-clip overflow-hidden px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                              {link.url}
+                              <a href={link.url}>{link.url}</a>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                               {link.clicks}
+                            </td>
+                            <td className="max-w-[150px] truncate hover:text-clip px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                              {link.userId}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                               <button
