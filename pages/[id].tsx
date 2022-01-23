@@ -23,6 +23,9 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     };
   }
 
+  const { cookie: _cookie, ...info } = ctx.req.headers;
+  const sessionInfo = JSON.stringify(info);
+
   const updatedLink = await prisma.link.update({
     select: {
       shortUrl: true,
@@ -34,6 +37,11 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     data: {
       clicks: {
         increment: 1,
+      },
+      histories: {
+        create: {
+          sessionInfo: sessionInfo,
+        },
       },
     },
   });

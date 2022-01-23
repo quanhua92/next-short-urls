@@ -11,16 +11,26 @@ datasource db {
 }
 
 model Link {
-  id        String   @id @default(uuid())
-  alias     String   @unique
+  id        String    @id @default(uuid())
+  alias     String    @unique
   shortUrl  String
   url       String
-  domain    String   @default("")
-  clicks    Int      @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  User      User?    @relation(fields: [userId], references: [id])
+  domain    String    @default("")
+  clicks    Int       @default(0)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  user      User?     @relation(fields: [userId], references: [id])
   userId    String?
+  histories History[]
+}
+
+model History {
+  id          String   @id @default(uuid())
+  link        Link?    @relation(fields: [linkId], references: [id])
+  linkId      String?
+  sessionInfo String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model User {

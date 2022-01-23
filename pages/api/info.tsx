@@ -4,5 +4,6 @@ import { sessionOptions } from "../../lib/session";
 
 export default withIronSessionApiRoute(handler, sessionOptions);
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  res.status(200).json(req.headers);
+  let { cookie, ...info } = req.headers;
+  res.status(200).json(info);
 }
