@@ -325,7 +325,7 @@ export default function Admin() {
                         return (
                           <tr
                             key={i}
-                            className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                            className={i % 2 === 1 ? "bg-white" : "bg-gray-50"}
                           >
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                               {link.alias}
