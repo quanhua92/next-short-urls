@@ -15,13 +15,14 @@ export type LinkResponse = {
 };
 
 export type Data = {
-  data?: LinkResponse[];
+  data?: LinkResponse;
   message?: string;
 };
 
 export default withIronSessionApiRoute(handler, sessionOptions);
 
 async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+  const { url, alias } = req.body;
   const userSession = req.session.user;
   if (!userSession) {
     res.status(400).json({ message: "Unauthorized" });
@@ -34,23 +35,27 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     return;
   }
 
-  var condition = {};
+  var condition: { alias: string; userId?: string } = {
+    alias: alias as string,
+  };
   if (user.role !== Role.ADMIN) {
     condition = {
+      alias: alias as string,
       userId: user.id,
     };
   }
 
-  const links = await prisma.link.findMany({
-    select: {
-      url: true,
-      shortUrl: true,
-      clicks: true,
-      alias: true,
-      domain: true,
-    },
+  const link = await prisma.link.update({
     where: condition,
+    data: {
+      url: url,
+    },
   });
 
-  res.status(200).json({ data: links });
+  if (link === null) {
+    res.status(400).json({ message: "Invalid link" });
+    return;
+  }
+
+  res.status(200).json({ data: link });
 }

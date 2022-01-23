@@ -1,4 +1,4 @@
-import useSWR from "swr";
+import useSWR, { useSWRConfig } from "swr";
 import Link from "next/link";
 import { Fragment, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
@@ -24,12 +24,17 @@ export default function Admin() {
     redirectTo: "/login",
   });
 
-  const { data } = useSWR<Data>("/api/list");
+  const API_LIST_URL = "/api/list";
+  const { mutate } = useSWRConfig();
+  const { data } = useSWR<Data>(API_LIST_URL);
   const [openDialog, setOpenDialog] = useState(false);
   const [currentLink, setCurrentLink] = useState<LinkResponse | undefined>();
+  const [isWorking, setIsWorking] = useState(false);
+
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(FormSchema),
@@ -39,18 +44,57 @@ export default function Admin() {
     return <div>...</div>;
   }
 
+  const sortedData = data?.data;
+  if (sortedData) {
+    sortedData?.sort((a, b) => (a.alias > b.alias ? 1 : -1));
+  }
+
+  const edit = async (data: FormData) => {
+    try {
+      setIsWorking(true);
+      await mutate(API_LIST_URL, async (originData: Data) => {
+        const resp = await fetch("/api/edit", {
+          body: JSON.stringify(data),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          method: "POST",
+        });
+        const response = await resp.json();
+        if (resp.status != 200) {
+          throw new Error(response.message);
+        }
+
+        // TODO: Check the undefined condition here
+        const filteredData = originData!.data!.filter(
+          (link) => link.alias !== data.alias
+        );
+        const newData = {
+          data: [...filteredData, response.data],
+          message: originData.message,
+        };
+        return newData;
+      });
+      setOpenDialog(false);
+    } catch (error: any) {
+      throw new Error(error);
+    } finally {
+      setIsWorking(false);
+    }
+  };
+
   const onSubmit: SubmitHandler<FormData> = (data) => {
-    console.log("EDITTING SUBMIT", data);
-    setOpenDialog(false);
-    // try {
-    //   toast.promise(create(data), {
-    //     loading: "Creating Your Short URL",
-    //     success: "Success!",
-    //     error: "Something went wrong.",
-    //   });
-    // } catch (error: any) {
-    //   toast.error(error);
-    // }
+    try {
+      toast.promise(edit(data), {
+        loading: "Editing Your Short URL",
+        success: "Success!",
+        error: (err: Error) => {
+          return `${err.message}`;
+        },
+      });
+    } catch (error: any) {
+      toast.error(error);
+    }
   };
 
   return (
@@ -224,8 +268,8 @@ export default function Admin() {
                     </tr>
                   </thead>
                   <tbody>
-                    {data &&
-                      data.data?.map((link, i) => {
+                    {sortedData &&
+                      sortedData.map((link, i) => {
                         return (
                           <tr
                             key={i}
@@ -247,6 +291,10 @@ export default function Admin() {
                               <button
                                 onClick={() => {
                                   setCurrentLink(link);
+                                  reset({
+                                    url: link.url,
+                                    alias: link.alias,
+                                  });
                                   setOpenDialog(true);
                                 }}
                                 className="text-blue-600 hover:text-blue-900"

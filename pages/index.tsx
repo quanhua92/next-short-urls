@@ -49,7 +49,8 @@ export default function Home() {
         method: "POST",
       });
       if (resp.status != 200) {
-        throw new Error("Server error.");
+        const data = await resp.json();
+        throw new Error(data.message);
       }
       const link = await resp.json();
 
@@ -77,7 +78,9 @@ export default function Home() {
       toast.promise(create(data), {
         loading: "Creating Your Short URL",
         success: "Success!",
-        error: "Something went wrong.",
+        error: (err: Error) => {
+          return `${err.message}`;
+        },
       });
     } catch (error: any) {
       toast.error(error);
