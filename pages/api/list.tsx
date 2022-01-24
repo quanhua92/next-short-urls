@@ -7,12 +7,14 @@ import { Role } from "@prisma/client";
 import { getUserById } from "../../lib/user";
 
 export type LinkResponse = {
+  id: string;
   url: string;
   shortUrl: string;
   alias: string;
   domain: string;
   clicks: number;
   userId: string | null;
+  createdAt: any;
 };
 
 export type Data = {
@@ -42,7 +44,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     };
   }
 
-  const { search_url, search_alias } = req.body;
+  const { search_url, search_alias, last_cursor_id, num_items } = req.body;
 
   if (search_url !== undefined) {
     condition["url"] = {
@@ -56,20 +58,54 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     };
   }
 
-  const links = await prisma.link.findMany({
-    select: {
-      url: true,
-      shortUrl: true,
-      clicks: true,
-      alias: true,
-      domain: true,
-      userId: true,
-      createdAt: true,
-    },
-    where: condition,
-    orderBy: {
-      createdAt: "desc",
-    },
+  let rawLinks = null;
+  let num_items_per_page = num_items !== undefined ? Number(num_items) : 5;
+  if (last_cursor_id !== undefined) {
+    rawLinks = await prisma.link.findMany({
+      select: {
+        id: true,
+        url: true,
+        shortUrl: true,
+        clicks: true,
+        alias: true,
+        domain: true,
+        userId: true,
+        createdAt: true,
+      },
+      take: num_items_per_page,
+      skip: 1,
+      cursor: {
+        id: last_cursor_id,
+      },
+      where: condition,
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+  } else {
+    rawLinks = await prisma.link.findMany({
+      select: {
+        id: true,
+        url: true,
+        shortUrl: true,
+        clicks: true,
+        alias: true,
+        domain: true,
+        userId: true,
+        createdAt: true,
+      },
+      take: num_items_per_page,
+      where: condition,
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+  }
+
+  let links = rawLinks.map((link) => {
+    let newLink: LinkResponse = link;
+    newLink.createdAt = Math.floor(link.createdAt.getTime() / 1000);
+    return newLink;
   });
 
   res.status(200).json({ data: links });
