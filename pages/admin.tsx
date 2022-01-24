@@ -121,32 +121,46 @@ export default function Admin() {
       setIsWorking(false);
     }
   };
-  const deleteLink = async (data: FormData) => {
+  const deleteLink = async (formData: FormData) => {
     try {
-      // setIsWorking(true);
-      // await mutate(API_LIST_URL, async (originData: Data) => {
-      //   const resp = await fetch("/api/delete", {
-      //     body: JSON.stringify(data),
-      //     headers: {
-      //       "Content-Type": "application/json",
-      //     },
-      //     method: "POST",
-      //   });
-      //   const response = await resp.json();
-      //   if (resp.status != 200) {
-      //     throw new Error(response.message);
-      //   }
-      //   // TODO: Check the undefined condition here
-      //   const filteredData = originData!.data!.filter(
-      //     (link) => link.alias !== data.alias
-      //   );
-      //   const newData = {
-      //     data: [...filteredData],
-      //     message: originData.message,
-      //   };
-      //   return newData;
-      // });
-      // setOpenDialog(false);
+      setIsWorking(true);
+      const resp = await fetch("/api/delete", {
+        body: JSON.stringify(formData),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      });
+      const response = await resp.json();
+      if (resp.status != 200) {
+        throw new Error(response.message);
+      }
+      if (data !== undefined) {
+        let newData: Data[] = [];
+
+        for (let index = 0; index < data.length; ++index) {
+          const originData = data[index];
+
+          let modifiedData: Data = {
+            lastCursorId: originData.lastCursorId,
+            message: originData.message,
+            data: [],
+          };
+          for (
+            let linkIndex = 0;
+            linkIndex < originData.data!.length;
+            linkIndex++
+          ) {
+            const link = originData.data![linkIndex];
+            if (link.alias !== formData.alias) {
+              modifiedData.data!.push(link);
+            }
+          }
+          newData.push(modifiedData);
+        }
+        mutate(newData, false);
+      }
+      setOpenDialog(false);
     } catch (error: any) {
       throw new Error(error);
     } finally {
