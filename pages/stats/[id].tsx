@@ -1,32 +1,27 @@
 import { GetServerSideProps, NextPage } from "next";
 import { withIronSessionSsr } from "iron-session/next";
 import { sessionOptions } from "../../lib/session";
-import { prisma } from "../../lib/prisma";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { getUserById } from "../../lib/user";
 import { Role } from "@prisma/client";
+import { LinkStats, getLinkStatsFromAlias } from "../api/stats";
 
-export const getServerSideProps: GetServerSideProps = withIronSessionSsr(
+export const getServerSideProps: GetServerSideProps = withIronSessionSsr<Props>(
   async (ctx) => {
     const { id: alias } = ctx.query;
-    const link = await prisma.link.findFirst({
-      select: {
-        shortUrl: true,
-        alias: true,
-        url: true,
-        clicks: true,
-        userId: true,
-      },
-      where: {
-        alias: alias as string,
-      },
-    });
+    const link = await getLinkStatsFromAlias(alias as string);
 
-    if (link === null || link?.userId === null) {
+    if (link === null) {
+      return {
+        props: {},
+      };
+    }
+
+    if (link.userId === null) {
       return {
         props: {
-          link,
+          link: link,
         },
       };
     }
@@ -37,18 +32,14 @@ export const getServerSideProps: GetServerSideProps = withIronSessionSsr(
       (userSession.admin == false && link.userId !== userSession.id)
     ) {
       return {
-        props: {
-          link: null,
-        },
+        props: {},
       };
     }
 
     const user = await getUserById(userSession.id);
     if (user === null) {
       return {
-        props: {
-          link: null,
-        },
+        props: {},
       };
     }
 
@@ -61,30 +52,21 @@ export const getServerSideProps: GetServerSideProps = withIronSessionSsr(
     }
 
     return {
-      props: {
-        link: null,
-      },
+      props: {},
     };
   },
   sessionOptions
 );
 
-type LinkStats = {
-  url?: string;
-  shortUrl?: string;
-  alias?: string;
-  clicks?: number;
-};
-
 type Props = {
-  link?: LinkStats | undefined;
+  link?: LinkStats;
 };
 
 const Stats: NextPage<Props> = function ({ link }) {
   const router = useRouter();
 
   useEffect(() => {
-    if (link === null) {
+    if (link === null || link === undefined) {
       router.push("/");
     }
   });

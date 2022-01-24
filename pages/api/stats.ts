@@ -5,12 +5,53 @@ import { prisma } from "../../lib/prisma";
 import { sessionOptions } from "../../lib/session";
 import { getUserById } from "../../lib/user";
 
+export type LinkStats = {
+  url?: string;
+  shortUrl?: string;
+  alias?: string;
+  clicks?: number;
+  userId?: string | null;
+  histories?: { createdAt: number }[];
+};
+
+export async function getLinkStatsFromAlias(
+  alias: string
+): Promise<LinkStats | null> {
+  const data = await prisma.link.findFirst({
+    select: {
+      shortUrl: true,
+      alias: true,
+      url: true,
+      clicks: true,
+      userId: true,
+      histories: {
+        select: {
+          createdAt: true,
+        },
+      },
+    },
+    where: {
+      alias: alias as string,
+    },
+  });
+  if (data === null) {
+    return null;
+  }
+  let { histories, ...rawData } = data;
+
+  let link: LinkStats = { ...rawData, histories: [] };
+  data.histories.map((x) => {
+    const h = Math.floor(x.createdAt.getTime() / 1000);
+    link?.histories?.push({
+      createdAt: h,
+    });
+  });
+
+  return link;
+}
+
 type Data = {
-  data?: {
-    url?: string;
-    shortUrl?: string;
-    clicks?: number;
-  };
+  data?: LinkStats;
   message?: string;
 };
 export default withIronSessionApiRoute(handler, sessionOptions);
@@ -23,17 +64,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     return;
   }
 
-  const link = await prisma.link.findFirst({
-    select: {
-      url: true,
-      shortUrl: true,
-      clicks: true,
-      userId: true,
-    },
-    where: {
-      alias: alias as string,
-    },
-  });
+  const link = await getLinkStatsFromAlias(alias as string);
 
   if (link === null) {
     res.status(400).json({ message: `${alias} not found` });
@@ -42,38 +73,31 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
 
   if (link.userId === null) {
     res.status(200).json({
-      data: {
-        url: link.url,
-        shortUrl: link.shortUrl,
-        clicks: link.clicks,
-      },
+      data: link,
     });
     return;
   }
 
   const userSession = req.session.user;
-  if (!userSession) {
+  if (
+    !userSession ||
+    (userSession.admin == false && link.userId !== userSession.id)
+  ) {
     res.status(400).json({ message: "Unauthorized" });
     return;
   }
   const user = await getUserById(userSession.id);
-  if (!user) {
+  if (user === null) {
     res.status(400).json({ message: "Unauthorized" });
     return;
   }
 
-  if (user.role !== Role.ADMIN) {
-    if (link?.userId !== user.id) {
-      res.status(400).json({ message: "Unauthorized" });
-      return;
-    }
+  if (link.userId === user.id || user.role === Role.ADMIN) {
+    res.status(200).json({
+      data: link,
+    });
+    return;
   }
 
-  res.status(200).json({
-    data: {
-      url: link.url,
-      shortUrl: link.shortUrl,
-      clicks: link.clicks,
-    },
-  });
+  res.status(400).json({ message: "Unauthorized" });
 }
