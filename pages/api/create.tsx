@@ -54,7 +54,7 @@ const createLinkWithRetry = async function (
       data: {
         url: url,
         alias: expectedAlias,
-        shortUrl: domain + "/" + alias,
+        shortUrl: domain + "/" + expectedAlias,
         domain: domain,
         userId: userId,
       },
