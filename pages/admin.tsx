@@ -50,11 +50,6 @@ export default function Admin() {
     return <div>...</div>;
   }
 
-  const sortedData = data?.data?.concat();
-  if (sortedData) {
-    sortedData?.sort((a, b) => (a.alias > b.alias ? 1 : -1));
-  }
-
   const editLink = async (data: FormData) => {
     try {
       setIsWorking(true);
@@ -325,8 +320,8 @@ export default function Admin() {
                     </tr>
                   </thead>
                   <tbody>
-                    {sortedData &&
-                      sortedData.map((link, i) => {
+                    {data?.data &&
+                      data?.data.map((link, i) => {
                         return (
                           <tr
                             key={i}

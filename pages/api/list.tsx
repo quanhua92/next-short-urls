@@ -35,10 +35,24 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     return;
   }
 
-  var condition = {};
+  var condition: any = {};
   if (user.role !== Role.ADMIN) {
     condition = {
       userId: user.id,
+    };
+  }
+
+  const { search_url, search_alias } = req.body;
+
+  if (search_url !== undefined) {
+    condition["url"] = {
+      contains: search_url,
+    };
+  }
+
+  if (search_alias !== undefined) {
+    condition["alias"] = {
+      contains: search_alias,
     };
   }
 
@@ -50,8 +64,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       alias: true,
       domain: true,
       userId: true,
+      createdAt: true,
     },
     where: condition,
+    orderBy: {
+      createdAt: "desc",
+    },
   });
 
   res.status(200).json({ data: links });
