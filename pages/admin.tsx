@@ -1,4 +1,5 @@
-import useSWR, { useSWRConfig } from "swr";
+import { useSWRConfig } from "swr";
+import useSWRInfinite from "swr/infinite";
 import Link from "next/link";
 import { Fragment, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
@@ -30,12 +31,36 @@ export default function Admin() {
   });
 
   const API_LIST_URL = "/api/list";
+  const API_LIST_LIMIT = 10;
+  const getKey = (pageIndex: number, previousPageData: Data) => {
+    // react the end
+    if (
+      previousPageData &&
+      (!previousPageData.data || previousPageData.data.length === 0)
+    )
+      return null;
+
+    // first page
+    if (pageIndex === 0) return `${API_LIST_URL}?limit=${API_LIST_LIMIT}`;
+
+    return `${API_LIST_URL}?limit=${API_LIST_LIMIT}&lastCursorId=${previousPageData.lastCursorId}`;
+  };
+
   const { mutate } = useSWRConfig();
-  const { data } = useSWR<Data>(API_LIST_URL);
+  const { data, size, setSize } = useSWRInfinite<Data>(getKey);
+
   const [openDialog, setOpenDialog] = useState(false);
   const [currentLink, setCurrentLink] = useState<LinkResponse | undefined>();
   const [isWorking, setIsWorking] = useState(false);
   const [actionType, setActionType] = useState<string>("");
+
+  let hasMorePage = true;
+  if (
+    data?.at(data.length - 1)?.data?.length &&
+    data?.at(data.length - 1)?.data?.length! < API_LIST_LIMIT
+  ) {
+    hasMorePage = false;
+  }
 
   const {
     register,
@@ -53,29 +78,30 @@ export default function Admin() {
   const editLink = async (data: FormData) => {
     try {
       setIsWorking(true);
-      await mutate(API_LIST_URL, async (originData: Data) => {
-        const resp = await fetch("/api/edit", {
-          body: JSON.stringify(data),
-          headers: {
-            "Content-Type": "application/json",
-          },
-          method: "POST",
-        });
-        const response = await resp.json();
-        if (resp.status != 200) {
-          throw new Error(response.message);
-        }
+      throw new Error("Not implemented");
+      // await mutate(API_LIST_URL, async (originData: Data) => {
+      //   const resp = await fetch("/api/edit", {
+      //     body: JSON.stringify(data),
+      //     headers: {
+      //       "Content-Type": "application/json",
+      //     },
+      //     method: "POST",
+      //   });
+      //   const response = await resp.json();
+      //   if (resp.status != 200) {
+      //     throw new Error(response.message);
+      //   }
 
-        // TODO: Check the undefined condition here
-        const filteredData = originData!.data!.filter(
-          (link) => link.alias !== data.alias
-        );
-        const newData = {
-          data: [...filteredData, response.data],
-          message: originData.message,
-        };
-        return newData;
-      });
+      //   // TODO: Check the undefined condition here
+      //   const filteredData = originData!.data!.filter(
+      //     (link) => link.alias !== data.alias
+      //   );
+      //   const newData = {
+      //     data: [...filteredData, response.data],
+      //     message: originData.message,
+      //   };
+      //   return newData;
+      // });
       setOpenDialog(false);
     } catch (error: any) {
       throw new Error(error);
@@ -320,73 +346,92 @@ export default function Admin() {
                     </tr>
                   </thead>
                   <tbody>
-                    {data?.data &&
-                      data?.data.map((link, i) => {
+                    {data &&
+                      data.map((pageData, pageIndex) => {
                         return (
-                          <tr
-                            key={i}
-                            className={i % 2 === 1 ? "bg-white" : "bg-gray-50"}
-                          >
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                              {link.alias}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                              <a href={link.shortUrl}>{link.shortUrl}</a>
-                            </td>
-                            <td className="max-w-xs truncate hover:text-clip overflow-hidden px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                              <a href={link.url}>{link.url}</a>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                              {link.clicks}
-                            </td>
-                            <td className="max-w-[100px] truncate hover:text-clip px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                              {link.userId}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                              <button
-                                onClick={async () => {
-                                  try {
-                                    await navigator.clipboard.writeText(
-                                      `${link.shortUrl}`
-                                    );
-                                    console.log("Copied!");
-                                  } catch (err) {
-                                    console.log(err);
-                                  }
-                                }}
-                                className="mr-3 text-blue-600 hover:text-blue-900"
+                          pageData &&
+                          pageData.data?.map((link, i) => {
+                            return (
+                              <tr
+                                key={`${pageIndex}-${i}`}
+                                className={
+                                  i % 2 === 1 ? "bg-white" : "bg-gray-50"
+                                }
                               >
-                                Copy Short URL
-                              </button>
-                              <button
-                                onClick={() => {
-                                  openInNewTab(`/stats/${link.alias}`);
-                                }}
-                                className="mr-3 text-blue-600 hover:text-blue-900"
-                              >
-                                Show Stats
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setCurrentLink(link);
-                                  reset({
-                                    url: link.url,
-                                    alias: link.alias,
-                                  });
-                                  setOpenDialog(true);
-                                }}
-                                className="text-blue-600 hover:text-blue-900"
-                              >
-                                Edit URL
-                              </button>
-                            </td>
-                          </tr>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                  {link.alias}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                  <a href={link.shortUrl}>{link.shortUrl}</a>
+                                </td>
+                                <td className="max-w-xs truncate hover:text-clip overflow-hidden px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                  <a href={link.url}>{link.url}</a>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                  {link.clicks}
+                                </td>
+                                <td className="max-w-[100px] truncate hover:text-clip px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                  {link.userId}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                  <button
+                                    onClick={async () => {
+                                      try {
+                                        await navigator.clipboard.writeText(
+                                          `${link.shortUrl}`
+                                        );
+                                        console.log("Copied!");
+                                      } catch (err) {
+                                        console.log(err);
+                                      }
+                                    }}
+                                    className="mr-3 text-blue-600 hover:text-blue-900"
+                                  >
+                                    Copy Short URL
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      openInNewTab(`/stats/${link.alias}`);
+                                    }}
+                                    className="mr-3 text-blue-600 hover:text-blue-900"
+                                  >
+                                    Show Stats
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setCurrentLink(link);
+                                      reset({
+                                        url: link.url,
+                                        alias: link.alias,
+                                      });
+                                      setOpenDialog(true);
+                                    }}
+                                    className="text-blue-600 hover:text-blue-900"
+                                  >
+                                    Edit URL
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          })
                         );
                       })}
                   </tbody>
                 </table>
               </div>
             </div>
+          </div>
+          <div className="mx-auto mb-10">
+            {hasMorePage ? (
+              <button
+                className="rounded px-4 py-2 bg-blue-400 max-w-xs text-blue-100"
+                onClick={() => setSize(size + 1)}
+              >
+                Load More
+              </button>
+            ) : (
+              <div>React the end!</div>
+            )}
           </div>
         </div>
         <ul></ul>
