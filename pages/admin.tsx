@@ -54,8 +54,8 @@ export default function Admin() {
 
   let hasMorePage = true;
   if (
-    data?.at(data.length - 1)?.data?.length &&
-    data?.at(data.length - 1)?.data?.length! < API_LIST_LIMIT
+    data?.slice(-1)[0].data?.length &&
+    data?.slice(-1)[0].data?.length! < API_LIST_LIMIT
   ) {
     hasMorePage = false;
   }
