@@ -31,7 +31,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const sessionInfo = JSON.stringify(info);
   const t2 = process.hrtime.bigint();
 
-  await prisma.link.update({
+  const updatePromise = prisma.link.update({
     select: {
       url: true,
     },
@@ -49,6 +49,17 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
       },
     },
   });
+
+  if (
+    process.env.VERCEL !== undefined ||
+    process.env.AWAIT_HISTORY_UPDATE === "1"
+  ) {
+    await updatePromise;
+  } else {
+    (async () => {
+      await updatePromise;
+    })();
+  }
 
   const t3 = process.hrtime.bigint();
 
