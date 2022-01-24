@@ -111,7 +111,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
 
   let cursorId = undefined;
   if (links.length > 0) {
-    cursorId = links.at(links.length - 1)?.id;
+    cursorId = links.slice(-1)[0].id;
   }
 
   res.status(200).json({ data: links, lastCursorId: cursorId });
