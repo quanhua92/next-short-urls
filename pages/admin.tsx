@@ -1,4 +1,3 @@
-import { useSWRConfig } from "swr";
 import useSWRInfinite from "swr/infinite";
 import Link from "next/link";
 import { Fragment, useState } from "react";
@@ -46,8 +45,7 @@ export default function Admin() {
     return `${API_LIST_URL}?limit=${API_LIST_LIMIT}&lastCursorId=${previousPageData.lastCursorId}`;
   };
 
-  const { mutate } = useSWRConfig();
-  const { data, size, setSize } = useSWRInfinite<Data>(getKey);
+  const { data, mutate, size, setSize } = useSWRInfinite<Data>(getKey);
 
   const [openDialog, setOpenDialog] = useState(false);
   const [currentLink, setCurrentLink] = useState<LinkResponse | undefined>();
@@ -75,12 +73,59 @@ export default function Admin() {
     return <div>...</div>;
   }
 
-  const editLink = async (data: FormData) => {
+  const editLink = async (formData: FormData) => {
     try {
       setIsWorking(true);
-      throw new Error("Not implemented");
+      const resp = await fetch("/api/edit", {
+        body: JSON.stringify(formData),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      });
+      const response = await resp.json();
+      if (resp.status != 200) {
+        throw new Error(response.message);
+      }
+      if (data !== undefined) {
+        let newData: Data[] = [];
+
+        for (let index = 0; index < data.length; ++index) {
+          const originData = data[index];
+
+          let modifiedData: Data = {
+            lastCursorId: originData.lastCursorId,
+            message: originData.message,
+            data: [],
+          };
+          for (
+            let linkIndex = 0;
+            linkIndex < originData.data!.length;
+            linkIndex++
+          ) {
+            const link = originData.data![linkIndex];
+            if (link.alias !== formData.alias) {
+              modifiedData.data!.push(link);
+            } else {
+              modifiedData.data!.push(response.data);
+            }
+          }
+          newData.push(modifiedData);
+        }
+        mutate(newData, false);
+      }
+      setOpenDialog(false);
+    } catch (error: any) {
+      throw new Error(error);
+    } finally {
+      setIsWorking(false);
+    }
+  };
+  const deleteLink = async (data: FormData) => {
+    try {
+      // setIsWorking(true);
       // await mutate(API_LIST_URL, async (originData: Data) => {
-      //   const resp = await fetch("/api/edit", {
+      //   const resp = await fetch("/api/delete", {
       //     body: JSON.stringify(data),
       //     headers: {
       //       "Content-Type": "application/json",
@@ -91,51 +136,17 @@ export default function Admin() {
       //   if (resp.status != 200) {
       //     throw new Error(response.message);
       //   }
-
       //   // TODO: Check the undefined condition here
       //   const filteredData = originData!.data!.filter(
       //     (link) => link.alias !== data.alias
       //   );
       //   const newData = {
-      //     data: [...filteredData, response.data],
+      //     data: [...filteredData],
       //     message: originData.message,
       //   };
       //   return newData;
       // });
-      setOpenDialog(false);
-    } catch (error: any) {
-      throw new Error(error);
-    } finally {
-      setIsWorking(false);
-    }
-  };
-  const deleteLink = async (data: FormData) => {
-    try {
-      setIsWorking(true);
-      await mutate(API_LIST_URL, async (originData: Data) => {
-        const resp = await fetch("/api/delete", {
-          body: JSON.stringify(data),
-          headers: {
-            "Content-Type": "application/json",
-          },
-          method: "POST",
-        });
-        const response = await resp.json();
-        if (resp.status != 200) {
-          throw new Error(response.message);
-        }
-
-        // TODO: Check the undefined condition here
-        const filteredData = originData!.data!.filter(
-          (link) => link.alias !== data.alias
-        );
-        const newData = {
-          data: [...filteredData],
-          message: originData.message,
-        };
-        return newData;
-      });
-      setOpenDialog(false);
+      // setOpenDialog(false);
     } catch (error: any) {
       throw new Error(error);
     } finally {
