@@ -19,6 +19,7 @@ export type LinkResponse = {
 
 export type Data = {
   data?: LinkResponse[];
+  lastCursorId?: string;
   message?: string;
 };
 
@@ -44,23 +45,23 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     };
   }
 
-  const { search_url, search_alias, last_cursor_id, num_items } = req.query;
+  const { searchUrl, searchAlias, lastCursorId, limit } = req.query;
 
-  if (search_url !== undefined) {
+  if (searchUrl !== undefined) {
     condition["url"] = {
-      contains: search_url,
+      contains: searchUrl,
     };
   }
 
-  if (search_alias !== undefined) {
+  if (searchAlias !== undefined) {
     condition["alias"] = {
-      contains: search_alias,
+      contains: searchAlias,
     };
   }
 
   let rawLinks = null;
-  let num_items_per_page = num_items !== undefined ? Number(num_items) : 5;
-  if (last_cursor_id !== undefined) {
+  let num_items_per_page = limit !== undefined ? Number(limit) : 10;
+  if (lastCursorId !== undefined) {
     rawLinks = await prisma.link.findMany({
       select: {
         id: true,
@@ -75,7 +76,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       take: num_items_per_page,
       skip: 1,
       cursor: {
-        id: last_cursor_id,
+        id: lastCursorId as string,
       },
       where: condition,
       orderBy: {
@@ -108,5 +109,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     return newLink;
   });
 
-  res.status(200).json({ data: links });
+  let cursorId = undefined;
+  if (links.length > 0) {
+    cursorId = links.at(links.length - 1)?.id;
+  }
+
+  res.status(200).json({ data: links, lastCursorId: cursorId });
 }
