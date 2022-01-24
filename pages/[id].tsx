@@ -3,7 +3,9 @@ import { prisma } from "../lib/prisma";
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const { id: alias } = ctx.query;
-  const link = await prisma.link.findFirst({
+  const t0 = process.hrtime.bigint();
+
+  const link = await prisma.link.findUnique({
     select: {
       alias: true,
       url: true,
@@ -12,6 +14,8 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
       alias: alias as string,
     },
   });
+
+  const t1 = process.hrtime.bigint();
 
   if (link === null) {
     return {
@@ -25,10 +29,10 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 
   const { cookie: _cookie, ...info } = ctx.req.headers;
   const sessionInfo = JSON.stringify(info);
+  const t2 = process.hrtime.bigint();
 
-  const updatedLink = await prisma.link.update({
+  await prisma.link.update({
     select: {
-      shortUrl: true,
       url: true,
     },
     where: {
@@ -46,10 +50,21 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     },
   });
 
+  const t3 = process.hrtime.bigint();
+
+  const time_query = Number(t1 - t0) / 1000000;
+  const time_info = Number(t2 - t1) / 1000000;
+  const time_update = Number(t3 - t2) / 1000000;
+
+  ctx.res.setHeader(
+    "Server-Timing",
+    `0_query;dur=${time_query}, 1_info;dur=${time_info}, 2_update;dur=${time_update}`
+  );
+
   return {
     redirect: {
       permanent: false,
-      destination: updatedLink.url,
+      destination: link.url,
     },
     props: {},
   };
