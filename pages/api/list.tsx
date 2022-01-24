@@ -44,7 +44,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     };
   }
 
-  const { search_url, search_alias, last_cursor_id, num_items } = req.body;
+  const { search_url, search_alias, last_cursor_id, num_items } = req.query;
 
   if (search_url !== undefined) {
     condition["url"] = {
