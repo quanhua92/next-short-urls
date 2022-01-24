@@ -10,6 +10,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import useUser from "../lib/useUser";
 import { Data, LinkResponse } from "./api/list";
 
+export const openInNewTab = (url: string): void => {
+  const newWindow = window.open(url, "_blank", "noopener,noreferrer");
+  if (newWindow) newWindow.opener = null;
+};
+
 type FormData = {
   url: string;
   alias: string;
@@ -315,7 +320,7 @@ export default function Admin() {
                         scope="col"
                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                       >
-                        Edit
+                        Actions
                       </th>
                     </tr>
                   </thead>
@@ -339,10 +344,33 @@ export default function Admin() {
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                               {link.clicks}
                             </td>
-                            <td className="max-w-[150px] truncate hover:text-clip px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            <td className="max-w-[100px] truncate hover:text-clip px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                               {link.userId}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                              <button
+                                onClick={async () => {
+                                  try {
+                                    await navigator.clipboard.writeText(
+                                      `${link.shortUrl}`
+                                    );
+                                    console.log("Copied!");
+                                  } catch (err) {
+                                    console.log(err);
+                                  }
+                                }}
+                                className="mr-3 text-blue-600 hover:text-blue-900"
+                              >
+                                Copy Short URL
+                              </button>
+                              <button
+                                onClick={() => {
+                                  openInNewTab(`/stats/${link.alias}`);
+                                }}
+                                className="mr-3 text-blue-600 hover:text-blue-900"
+                              >
+                                Show Stats
+                              </button>
                               <button
                                 onClick={() => {
                                   setCurrentLink(link);
@@ -354,7 +382,7 @@ export default function Admin() {
                                 }}
                                 className="text-blue-600 hover:text-blue-900"
                               >
-                                Edit
+                                Edit URL
                               </button>
                             </td>
                           </tr>
