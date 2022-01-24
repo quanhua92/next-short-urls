@@ -77,6 +77,18 @@ const Stats: NextPage<Props> = function ({ link }) {
       <p className="py-3 px-3">shortUrl: {link?.shortUrl}</p>
       <p className="py-3 px-3">alias: {link?.alias}</p>
       <p className="py-3 px-3">Clicks: {link?.clicks}</p>
+      <ul>
+        {link?.histories
+          ?.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
+          .map((x, i) => {
+            const t = new Date(x.createdAt * 1000);
+            return (
+              <li key={i}>
+                {t.toLocaleTimeString()} {t.toLocaleDateString()}
+              </li>
+            );
+          })}
+      </ul>
     </div>
   );
 };
