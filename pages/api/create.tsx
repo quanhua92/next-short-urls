@@ -5,6 +5,11 @@ import { Link } from "@prisma/client";
 import { sessionOptions } from "../../lib/session";
 import { withIronSessionApiRoute } from "iron-session/next";
 import { getUserById } from "../../lib/user";
+import {
+  LIST_DOMAINS,
+  MAX_RETRY,
+  GENERATED_SHORT_URL_LENGTH,
+} from "../../lib/config";
 
 type Data = {
   data?: {
@@ -15,10 +20,6 @@ type Data = {
   };
   message: string;
 };
-
-const GENERATED_SHORT_URL_LENGTH = 6;
-const MAX_RETRY = 5;
-const DEFAULT_DOMAIN = "https://next-short-urls.vercel.app";
 
 const createLinkWithRetry = async function (
   url: string,
@@ -66,7 +67,7 @@ const createLinkWithRetry = async function (
 export default withIronSessionApiRoute(handler, sessionOptions);
 
 async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
-  const { url, alias } = req.body;
+  const { url, alias, domain } = req.body;
   const userSession = req.session.user;
   let userId = undefined;
   if (userSession) {
@@ -88,7 +89,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
       url,
       alias,
       userId,
-      DEFAULT_DOMAIN,
+      domain === undefined ? LIST_DOMAINS[0] : domain,
       GENERATED_SHORT_URL_LENGTH,
       MAX_RETRY
     );
