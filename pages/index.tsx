@@ -93,8 +93,8 @@ export default function Home() {
   return (
     <>
       <Toaster />
-      <div className="flex h-screen max-w-5xl w-full m-auto items-center">
-        <div className="flex flex-col basis-1/2">
+      <div className="grid lg:grid-cols-2 h-screen max-w-5xl w-full m-auto items-center">
+        <div className="px-10 row-start-2 lg:row-start-1">
           <span className="text-4xl py-4">Welcome to next-short-urls</span>
 
           <div className="text-2xl text-gray-900 mt-2">
@@ -109,7 +109,7 @@ export default function Home() {
             <ThumbUpIcon className="h-5 w-5 text-gray-900 inline-block mr-2" />
             Full Link History
           </div>
-          <div className="mt-10">
+          <div className="mt-10 grid lg:grid-cols-2 gap-x-2">
             <Link href="/signup">
               <a
                 className="bg-blue-400 hover:bg-blue-600 text-blue-100 border shadow py-3 px-6 font-semibold rounded"
@@ -121,7 +121,7 @@ export default function Home() {
             </Link>
             <a
               href="https://github.com/quanhua92/next-short-urls"
-              className="ml-4 bg-blue-400 hover:bg-blue-600 text-blue-100 border shadow py-3 px-6 font-semibold rounded"
+              className="bg-blue-400 hover:bg-blue-600 text-blue-100 border shadow py-3 px-6 font-semibold rounded"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -129,7 +129,7 @@ export default function Home() {
             </a>
           </div>
         </div>
-        <div className="basis-1/2 flex flex-col">
+        <div className="">
           <div>
             {user?.username ? (
               <div>
