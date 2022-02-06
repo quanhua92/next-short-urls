@@ -1,5 +1,6 @@
 import { GetServerSideProps } from "next";
 import { prisma } from "../lib/prisma";
+import os from "os";
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const { id: alias } = ctx.query;
@@ -71,6 +72,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     "Server-Timing",
     `0_query;dur=${time_query}, 1_info;dur=${time_info}, 2_update;dur=${time_update}`
   );
+  ctx.res.setHeader("Host-Name", os.hostname());
 
   return {
     redirect: {
